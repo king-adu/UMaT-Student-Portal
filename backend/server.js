@@ -5,6 +5,8 @@ const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 require('dotenv').config();
 
 // Import routes
@@ -24,13 +26,13 @@ const PORT = process.env.PORT || 5000;
 // Database connection
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/umat-portal', {
+    const conn = await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log('✅ MongoDB connected successfully');
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error('❌ MongoDB connection error:', error.message);
+    console.error('❌ Database connection error:', error);
     process.exit(1);
   }
 };
@@ -46,7 +48,10 @@ app.use(cors({
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  message: {
+    success: false,
+    message: 'Too many requests from this IP, please try again later.'
+  }
 });
 app.use('/api/', limiter);
 
@@ -63,9 +68,9 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
+app.get('/api/health', (req, res) => {
+  res.json({
+    success: true,
     message: 'UMaT Student Portal API is running',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
@@ -80,12 +85,9 @@ app.use('/api/news', newsRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Swagger documentation
+// Swagger documentation (development only)
 if (process.env.NODE_ENV === 'development') {
-  const swaggerJsdoc = require('swagger-jsdoc');
-  const swaggerUi = require('swagger-ui-express');
-
-  const options = {
+  const swaggerOptions = {
     definition: {
       openapi: '3.0.0',
       info: {
@@ -93,8 +95,8 @@ if (process.env.NODE_ENV === 'development') {
         version: '1.0.0',
         description: 'API documentation for UMaT Student Portal',
         contact: {
-          name: 'King Adu',
-          email: 'support@umat-portal.com'
+          name: 'UMaT IT Support',
+          email: 'support@umat.edu.gh'
         }
       },
       servers: [
@@ -113,10 +115,10 @@ if (process.env.NODE_ENV === 'development') {
         }
       }
     },
-    apis: ['./routes/*.js', './models/*.js']
+    apis: ['./routes/*.js', './controllers/*.js', './models/*.js']
   };
 
-  const specs = swaggerJsdoc(options);
+  const specs = swaggerJsdoc(swaggerOptions);
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 }
 
@@ -138,7 +140,7 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
-      console.log(`🏥 Health Check: http://localhost:${PORT}/health`);
+      console.log(`🏥 Health Check: http://localhost:${PORT}/api/health`);
     });
   } catch (error) {
     console.error('❌ Server startup error:', error);

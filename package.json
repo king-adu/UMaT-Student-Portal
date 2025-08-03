@@ -1,0 +1,37 @@
+{
+  "name": "umat-student-portal",
+  "version": "1.0.0",
+  "description": "UMaT Student Portal - A comprehensive student management system",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd backend && npm run dev",
+    "client": "cd frontend && npm start",
+    "build": "cd frontend && npm run build",
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "test": "cd backend && npm test && cd ../frontend && npm test",
+    "start": "cd backend && npm start"
+  },
+  "keywords": [
+    "student-portal",
+    "umat",
+    "react",
+    "nodejs",
+    "express",
+    "mongodb",
+    "paystack"
+  ],
+  "author": "King Adu",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/king-adu/UMaT-Student-Portal.git"
+  },
+  "bugs": {
+    "url": "https://github.com/king-adu/UMaT-Student-Portal/issues"
+  },
+  "homepage": "https://github.com/king-adu/UMaT-Student-Portal#readme"
+} 
